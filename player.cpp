@@ -14,7 +14,7 @@ int Player::start_game() {
   connected_sock[0] = socket_fd;
   
   // set up as a server inorder to get port
-  int listensocket_fd = server_init("0");
+  int listensocket_fd = server_init("");
   if (listensocket_fd == -1) {
     std::cerr << "Can not init server for listening\n";
     return -1;
@@ -56,8 +56,7 @@ int Player::start_game() {
   //std::cout << "id = " << id << " num players = " << num_players << " host = " << host << " port = " << port << " host size = " << host.size() <<  std::endl;
   // connecting to neighbours
   std::string t_port = std::to_string(port);
-  int rsocket_fd = client_init(host.c_str(), t_port.c_str()
-);
+  int rsocket_fd = client_init(host.c_str(), t_port.c_str());
   if (socket_fd == -1) {
     std::cerr << "Can not init client for rightneighbour\n";
     return -1;

@@ -52,6 +52,11 @@ int server_init(const char * port) {
     std::cerr << "  (" << hostname << "," << port << ")" << std::endl;
     return -1;
   }
+  
+  if (strcmp(port, "") == 0) {
+    struct sockaddr_in * addr_in = (struct sockaddr_in *)(host_info_list->ai_addr);
+    addr_in->sin_port = 0;
+  }
 
   int socket_fd = socket(host_info_list->ai_family, 
 		     host_info_list->ai_socktype, 
