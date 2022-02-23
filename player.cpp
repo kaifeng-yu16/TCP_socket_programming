@@ -21,13 +21,14 @@ int Player::start_game() {
   }
 
   // get local host & port
-  char localhost[4096];
-  int rtn = gethostname(localhost, 4095);
+  char localhost[1024];
+  int rtn = gethostname(localhost, 1023);
   if (rtn != 0) {
     std::cerr << "Can not get local host for player\n";
     return -1;
   }
-  // std::cout << "size of local host: "  << strlen(localhost) << std::endl; 
+  localhost[1023] = 0;
+  //std::cout << "size of local host: "  << strlen(localhost) << std::endl; 
   struct sockaddr_in socket_addr;
   unsigned int socket_addr_len = sizeof(socket_addr);
   rtn = getsockname(listensocket_fd, (struct sockaddr*)&socket_addr, &socket_addr_len);
@@ -37,14 +38,14 @@ int Player::start_game() {
   }
   int localport = ntohs(socket_addr.sin_port);
   send(socket_fd, (char*)&localport, sizeof(int), 0);
-  send(socket_fd, localhost, strlen(localhost) + 1, 0);
+  send(socket_fd, localhost, 1024, 0);
   //  Recieve neighbour & player info
   recv(socket_fd, (char *)&id, sizeof(int), MSG_WAITALL);
   recv(socket_fd, (char *)&num_players, sizeof(int), MSG_WAITALL);
   recv(socket_fd, (char *)&port, sizeof(int), MSG_WAITALL);
-  char buffer[4096];
-  int size = recv(socket_fd, buffer, 4095, 0);
-  buffer[4095] = 0;
+  char buffer[1024];
+  int size = recv(socket_fd, buffer, 1024, MSG_WAITALL);
+  buffer[1023] = 0;
   if (size == 0 || size == -1) {
       std::cerr << "Error happend when player is receiving host of neighbour\n";
       return -1;
@@ -72,17 +73,20 @@ int Player::start_game() {
   //std::cout << "successfully connected\n"; 
   // waiting for potatos
   Potato potato;
+  fd_set readfds;
+  int max_ele = *max_element(connected_sock.begin(), connected_sock.end());
   while(1) {
-    fd_set readfds;
     FD_ZERO(&readfds);
     for (int i = 0; i < 3; ++i) {
       FD_SET(connected_sock[i], &readfds);
     }
-    int max_ele = *max_element(connected_sock.begin(), connected_sock.end());
+    //std::cout << "befor select\n";
     select(max_ele + 1, &readfds, NULL, NULL, NULL);
+    //std::cout << "after select\n";
     for (int i = 0; i < 3; ++i) {
       if (FD_ISSET(connected_sock[i], &readfds)) {
-        recv(connected_sock[i], (char *)&potato, sizeof(potato), 0);
+        int size_recv = recv(connected_sock[i], (char *)&potato, sizeof(potato), MSG_WAITALL);
+        //std::cout << "recv size: " << size_recv << std::endl;
         if (potato.hops == 0) {
           for (int j = 0; j < 3; ++j) {
             close(connected_sock[j]);

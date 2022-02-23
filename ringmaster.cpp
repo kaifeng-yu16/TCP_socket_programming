@@ -30,10 +30,10 @@ int RingMaster::start_game() {
     // receive port&host from this player, fill player_port&player_host
     int p_port;
     recv(client_connection_fd, (char*)&p_port, sizeof(int), MSG_WAITALL);
-    char buffer[4096];
-    int size = recv(client_connection_fd, buffer, 4095, 0);
+    char buffer[1024];
+    int size = recv(client_connection_fd, buffer, 1024, MSG_WAITALL);
     //std::cout << "recieved size = " << size << std::endl;
-    buffer[4095] = 0;
+    buffer[1023] = 0;
     if (size == 0 || size == -1) {
       std::cerr << "Error happend when ringmaster is receiving host from player\n";
       return -1;
@@ -41,7 +41,7 @@ int RingMaster::start_game() {
     buffer[size] = 0;
     player_host[i] = std::string(buffer);
     player_port[i] = p_port;
-    // std::cout << "RingMaster recieve host = " << player_host[i] << "   port = " << player_port[i] <<  "  from player " << i << std::endl;
+    //std::cout << "RingMaster recieve host = " << player_host[i] << "   port = " << player_port[i] <<  "  from player " << i << std::endl;
     std::cout << "Player " << i << " is ready to play\n"; 
   }
   close(socket_fd);
@@ -51,11 +51,15 @@ int RingMaster::start_game() {
     send(player_sock[i], (char*)&player_num, sizeof(int), 0);
     if (i == player_num - 1)  {
       send(player_sock[i], (char*)&player_port[0], sizeof(int), 0);
-      int size = send(player_sock[i], player_host[0].c_str(), player_host[0].size() + 1, 0);
+      char send_buffer[1024];
+      std::strcpy (send_buffer, player_host[0].c_str());
+      int size = send(player_sock[i], send_buffer, 1024, 0);
       //printf("host size:%d\n", size);
     } else {
       send(player_sock[i], (char*)&player_port[i + 1], sizeof(int), 0);
-      send(player_sock[i], player_host[i + 1].c_str(), player_host[i + 1].size() + 1, 0);
+      char send_buffer[1024];
+      std::strcpy (send_buffer, player_host[i + 1].c_str());
+      send(player_sock[i], send_buffer, 1024, 0);
     }
     //std::cout << "id = " << i << " player_num = " << player_num << " host size: " << player_host[i].size() << std::endl;
   }
@@ -73,7 +77,8 @@ void RingMaster::play() {
   Potato potato;
   potato.hops = total_hops;
   std::cout << "Ready to start the game, sending potato to player "<< random << std::endl;
-  send(player_sock[random], (char *)&potato, sizeof(potato), 0);
+  int size = send(player_sock[random], (char *)&potato, sizeof(potato), 0);
+  //std::cout << "potato sended size: "<<size<<std::endl;
   fd_set readfds;
   FD_ZERO(&readfds);
   for (int i = 0; i < player_num; ++i) {
@@ -83,7 +88,7 @@ void RingMaster::play() {
   select(max_ele + 1, &readfds, NULL, NULL, NULL);
   for (int i = 0; i < player_num; ++i) {
     if (FD_ISSET(player_sock[i], &readfds)) {
-      recv(player_sock[i], (char *)&potato, sizeof(potato), 0);
+      recv(player_sock[i], (char *)&potato, sizeof(potato), MSG_WAITALL);
     }
   }
   std::cout << "Trace of potato:" << std::endl;
