@@ -116,6 +116,7 @@ void print_help() {
 }
 
 int main(int argc, char ** argv) {
+  srand ((unsigned int)time(NULL));
   // sanity check
   if (argc != 4) {
     print_help();

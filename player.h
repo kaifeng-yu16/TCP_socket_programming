@@ -2,7 +2,7 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
-
+#include <ctime>
 #include "socket.cpp"
 #include "potato.h"
 

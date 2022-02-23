@@ -3,6 +3,7 @@
 #include <vector>
 #include <exception>
 #include <cstdlib>
+#include <ctime>
 #include <algorithm>
 #include "socket.cpp"
 #include "potato.h"

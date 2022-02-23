@@ -71,6 +71,7 @@ int Player::start_game() {
   connected_sock[1] = rsocket_fd;
   connected_sock[2] = lsocket_fd;
   //std::cout << "successfully connected\n"; 
+  srand((unsigned int)time(NULL) + id);
   // waiting for potatos
   Potato potato;
   fd_set readfds;
