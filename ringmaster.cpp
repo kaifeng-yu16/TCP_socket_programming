@@ -13,6 +13,7 @@ void RingMaster::print_info() {
 }
 
 int RingMaster::start_game() {
+  srand ((unsigned int)time(NULL) + player_num);
   std::string port_str = std::to_string(port);
   int socket_fd = server_init(port_str.c_str());
   if (socket_fd == -1) {
@@ -116,7 +117,6 @@ void print_help() {
 }
 
 int main(int argc, char ** argv) {
-  srand ((unsigned int)time(NULL));
   // sanity check
   if (argc != 4) {
     print_help();
