@@ -1,12 +1,16 @@
-TARGETS=client server
+CPPFLAG=-pedantic -Wall -Werror
+TARGETS=ringmaster player
 
 all: $(TARGETS)
+
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) *.o
 
-client: client.cpp
+player: player.cpp player.h socket.h socket.o potato.h
 	g++ -g -o $@ $<
 
-server: server.cpp
+ringmaster: ringmaster.cpp ringmaster.h socket.h socket.o potato.h
 	g++ -g -o $@ $<
 
+socket.o: socket.cpp socket.h
+	g++ $(CPPFLAG) -c $<
