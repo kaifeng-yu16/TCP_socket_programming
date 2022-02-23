@@ -70,6 +70,7 @@ int Player::start_game() {
   connected_sock[1] = rsocket_fd;
   connected_sock[2] = lsocket_fd;
   //std::cout << "successfully connected\n"; 
+  std::cout << "Connected as player " << id << " out of " << num_players << " total players\n";
   srand((unsigned int)time(NULL) + id);
   // waiting for potatos
   Potato potato;
@@ -97,7 +98,7 @@ int Player::start_game() {
           potato.hops -= 1;
           potato.trace[potato.hops] = id;
           //printf("potato hops = %d, trace = %d\n", potato.hops, potato.trace[potato.hops]);
-          std::cout << "I’m it\n";
+          std::cout << "I'm it\n";
           send(connected_sock[0], (char *)&potato, sizeof(potato), 0);
         } else {
           potato.hops -= 1;
