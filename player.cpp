@@ -1,5 +1,6 @@
 #include "player.h"
 
+
 Player::Player(std::string host, int port) : host(host), port(port) {
   connected_sock.resize(3);
 }
