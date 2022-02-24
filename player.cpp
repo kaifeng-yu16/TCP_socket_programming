@@ -108,7 +108,7 @@ void Player::send_potato() {
       if (FD_ISSET(connected_sock[i], &readfds)) {
         int size_recv = recv(connected_sock[i], (char *)&potato, sizeof(potato), MSG_WAITALL);
         //std::cout << "recv size: " << size_recv << std::endl;
-        if (potato.hops == 0) {
+        if (potato.hops == 0 || size_recv == 0) {
           for (int j = 0; j < 3; ++j) {
             close(connected_sock[j]);
           }
