@@ -76,6 +76,7 @@ int RingMaster::start_game() {
 void RingMaster::play() {
   int random = rand() % player_num;
   Potato potato;
+  memset(&potato, 0, sizeof(potato));
   potato.hops = total_hops;
   std::cout << "Ready to start the game, sending potato to player "<< random << std::endl;
   int size = send(player_sock[random], (char *)&potato, sizeof(potato), 0);
@@ -104,6 +105,7 @@ void RingMaster::play() {
 
 void RingMaster::end_game() {
   Potato potato;
+  memset(&potato, 0, sizeof(potato));
   potato.hops = 0;
   for (int i = 0; i < player_num; ++i) {
     send(player_sock[i], (char *)&potato, sizeof(potato), 0);

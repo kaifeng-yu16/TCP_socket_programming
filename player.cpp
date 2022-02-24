@@ -15,7 +15,7 @@ int Player::start_game() {
   connected_sock[0] = socket_fd;
   
   // set up as a server inorder to get port
-  int listensocket_fd = server_init("");
+  int listensocket_fd = server_init("0");
   if (listensocket_fd == -1) {
     std::cerr << "Can not init server for listening\n";
     return -1;
