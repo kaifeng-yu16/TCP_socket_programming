@@ -17,4 +17,8 @@ private:
   int num_players;
   std::string host;
   int port;
+
+  int receive_info_from_master();
+  int send_info_to_master(int listendsocket_fd);
+  void send_potato();
 };

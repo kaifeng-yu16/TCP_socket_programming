@@ -14,6 +14,22 @@ void RingMaster::print_info() {
 
 int RingMaster::start_game() {
   srand ((unsigned int)time(NULL) + player_num);
+  // accept players
+  if (accept_players() == -1) {
+    return -1;
+  }
+  // send players their neighbour info & player id 
+  send_info_to_player();
+  // play game
+  if (total_hops > 0) {
+    play();
+  }
+  // sending players empty potato to end game
+  end_game();
+  return 0; 
+}
+// accept players
+int RingMaster::accept_players() {
   std::string port_str = std::to_string(port);
   int socket_fd = server_init(port_str.c_str());
   if (socket_fd == -1) {
@@ -46,7 +62,11 @@ int RingMaster::start_game() {
     std::cout << "Player " << i << " is ready to play\n"; 
   }
   close(socket_fd);
-  // send players their neighbour info & player id 
+  return 0;
+}
+
+// send players their neighbour info & player id 
+void RingMaster::send_info_to_player() {
   for (int i = 0; i < player_num; ++i) {
     send(player_sock[i], (char*)&i, sizeof(int), 0);
     send(player_sock[i], (char*)&player_num, sizeof(int), 0);
@@ -64,13 +84,6 @@ int RingMaster::start_game() {
     }
     //std::cout << "id = " << i << " player_num = " << player_num << " host size: " << player_host[i].size() << std::endl;
   }
-  // play game
-  if (total_hops > 0) {
-    play();
-  }
-  // sending players empty potato to end game
-  end_game();
-  return 0; 
 }
 
 void RingMaster::play() {

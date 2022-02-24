@@ -1,6 +1,5 @@
 #include "player.h"
 
-
 Player::Player(std::string host, int port) : host(host), port(port) {
   connected_sock.resize(3);
 }
@@ -14,46 +13,20 @@ int Player::start_game() {
   }
   connected_sock[0] = socket_fd;
   
-  // set up as a server inorder to get port
+  // set up as a server inorder to provide port num to neighbour
   int listensocket_fd = server_init("0");
   if (listensocket_fd == -1) {
     std::cerr << "Can not init server for listening\n";
     return -1;
   }
-
   // get local host & port
-  char localhost[1024];
-  int rtn = gethostname(localhost, 1023);
-  if (rtn != 0) {
-    std::cerr << "Can not get local host for player\n";
+  if (send_info_to_master(listensocket_fd) == -1) {
     return -1;
   }
-  localhost[1023] = 0;
-  //std::cout << "size of local host: "  << strlen(localhost) << std::endl; 
-  struct sockaddr_in socket_addr;
-  unsigned int socket_addr_len = sizeof(socket_addr);
-  rtn = getsockname(listensocket_fd, (struct sockaddr*)&socket_addr, &socket_addr_len);
-  if (rtn != 0) {
-    std::cerr << "Can not get local port for player\n";
-    return -1;
-  }
-  int localport = ntohs(socket_addr.sin_port);
-  send(socket_fd, (char*)&localport, sizeof(int), 0);
-  send(socket_fd, localhost, 1024, 0);
   //  Recieve neighbour & player info
-  recv(socket_fd, (char *)&id, sizeof(int), MSG_WAITALL);
-  recv(socket_fd, (char *)&num_players, sizeof(int), MSG_WAITALL);
-  recv(socket_fd, (char *)&port, sizeof(int), MSG_WAITALL);
-  char buffer[1024];
-  int size = recv(socket_fd, buffer, 1024, MSG_WAITALL);
-  buffer[1023] = 0;
-  if (size == 0 || size == -1) {
-      std::cerr << "Error happend when player is receiving host of neighbour\n";
-      return -1;
+  if (receive_info_from_master() == -1) {
+    return -1;
   }
-  // printf("size = %d\n", size);
-  buffer[size] = 0;
-  host = std::string(buffer);
   //std::cout << "id = " << id << " num players = " << num_players << " host = " << host << " port = " << port << " host size = " << host.size() <<  std::endl;
   // connecting to neighbours
   std::string t_port = std::to_string(port);
@@ -74,6 +47,52 @@ int Player::start_game() {
   std::cout << "Connected as player " << id << " out of " << num_players << " total players\n";
   srand((unsigned int)time(NULL) + id);
   // waiting for potatos
+  send_potato();
+  return 0;
+}
+
+int Player::send_info_to_master(int listensocket_fd) {
+  char localhost[1024];
+  int rtn = gethostname(localhost, 1023);
+  if (rtn != 0) {
+    std::cerr << "Can not get local host for player\n";
+    return -1;
+  }
+  localhost[1023] = 0;
+  //std::cout << "size of local host: "  << strlen(localhost) << std::endl; 
+  struct sockaddr_in socket_addr;
+  unsigned int socket_addr_len = sizeof(socket_addr);
+  rtn = getsockname(listensocket_fd, (struct sockaddr*)&socket_addr, &socket_addr_len);
+  if (rtn != 0) {
+    std::cerr << "Can not get local port for player\n";
+    return -1;
+  }
+  int localport = ntohs(socket_addr.sin_port);
+  send(connected_sock[0], (char*)&localport, sizeof(int), 0);
+  send(connected_sock[0], localhost, 1024, 0);
+  return 0;
+}
+
+int Player::receive_info_from_master() {
+  //  Recieve neighbour & player info
+  recv(connected_sock[0], (char *)&id, sizeof(int), MSG_WAITALL);
+  recv(connected_sock[0], (char *)&num_players, sizeof(int), MSG_WAITALL);
+  recv(connected_sock[0], (char *)&port, sizeof(int), MSG_WAITALL);
+  char buffer[1024];
+  int size = recv(connected_sock[0], buffer, 1024, MSG_WAITALL);
+  buffer[1023] = 0;
+  if (size == 0 || size == -1) {
+      std::cerr << "Error happend when player is receiving host of neighbour\n";
+      return -1;
+  }
+  // printf("size = %d\n", size);
+  buffer[size] = 0;
+  host = std::string(buffer);
+  return 0;
+}
+
+void Player::send_potato() {
+  // waiting for potatos
   Potato potato;
   fd_set readfds;
   int max_ele = *max_element(connected_sock.begin(), connected_sock.end());
@@ -93,7 +112,7 @@ int Player::start_game() {
           for (int j = 0; j < 3; ++j) {
             close(connected_sock[j]);
           }
-          return 0;
+          return;
         }
         if (potato.hops == 1) {
           potato.hops -= 1;
@@ -127,8 +146,6 @@ int Player::start_game() {
       }
     }
   }
-  
-  return 0;
 }
 
 void print_help() {

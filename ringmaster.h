@@ -21,6 +21,8 @@ private:
   int total_hops;
   int port;
   
+  int accept_players();
+  void send_info_to_player();
   void play();
   void end_game();
 };
